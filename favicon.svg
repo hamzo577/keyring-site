@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <rect width="120" height="120" rx="26" fill="#241b2f"/>
+  <circle cx="60" cy="42" r="26" stroke="#e3a84b" stroke-width="6" fill="none"/>
+  <g transform="translate(40,58) rotate(-18) scale(0.85)">
+    <circle cx="0" cy="0" r="9" fill="#e3a84b"/>
+    <circle cx="0" cy="0" r="3.4" fill="#241b2f"/>
+    <rect x="-2.4" y="8" width="4.8" height="24" rx="1.4" fill="#e3a84b"/>
+    <rect x="2.4" y="26" width="6" height="3.6" rx="0.8" fill="#e3a84b"/>
+    <rect x="2.4" y="32" width="4.4" height="3.6" rx="0.8" fill="#e3a84b"/>
+  </g>
+  <g transform="translate(62,62) rotate(10) scale(1.05)">
+    <circle cx="0" cy="0" r="9" fill="#f0bd6b"/>
+    <circle cx="0" cy="0" r="3.4" fill="#241b2f"/>
+    <rect x="-2.4" y="8" width="4.8" height="30" rx="1.4" fill="#f0bd6b"/>
+    <rect x="2.4" y="30" width="7" height="4" rx="0.8" fill="#f0bd6b"/>
+    <rect x="2.4" y="37" width="5" height="4" rx="0.8" fill="#f0bd6b"/>
+  </g>
+  <g transform="translate(80,54) rotate(28) scale(0.72)">
+    <circle cx="0" cy="0" r="9" fill="#e3a84b"/>
+    <circle cx="0" cy="0" r="3.4" fill="#241b2f"/>
+    <rect x="-2.4" y="8" width="4.8" height="20" rx="1.4" fill="#e3a84b"/>
+    <rect x="2.4" y="22" width="5.5" height="3.4" rx="0.8" fill="#e3a84b"/>
+  </g>
+</svg>

@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="en" style="color-scheme: dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Keyring: shared subscription plans</title>
+  <meta name="description" content="Spotify, Netflix, Disney+, and more, sold as shared seats at a fraction of retail." />
+  <meta name="theme-color" content="#241b2f" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta property="og:title" content="Keyring: shared subscription plans" />
+  <meta property="og:description" content="Spotify, Netflix, Disney+, and more, sold as shared seats at a fraction of retail." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #241b2f;
+      --bg-raised: #2f2440;
+      --bg-sunken: #1a1424;
+      --fg: #f4ece3;
+      --fg-muted: #c3b5c4;
+      --fg-faint: #8d7f93;
+      --accent: #e3a84b;
+      --accent-strong: #f0bd6b;
+      --accent-ink: #2b1d0a;
+      --success: #7fb07a;
+      --error: #e0896a;
+      --border: rgba(244, 236, 227, 0.14);
+      --border-strong: rgba(244, 236, 227, 0.26);
+      --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+      --font-body: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+      --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-body);
+      line-height: 1.5;
+    }
+    h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; margin: 0; }
+    p { margin: 0; }
+    a { color: inherit; }
+    .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+    .container { width: 100%; max-width: 72rem; margin-inline: auto; padding-inline: 1.25rem; }
+    .muted { color: var(--fg-muted); }
+    .faint { color: var(--fg-faint); }
+
+    header.site {
+      position: sticky; top: 0; z-index: 20;
+      border-bottom: 1px solid var(--border);
+      background: rgba(36, 27, 47, 0.85);
+      backdrop-filter: blur(6px);
+    }
+    .header-row { display: flex; align-items: center; justify-content: space-between; height: 4rem; }
+    .brand { display: flex; align-items: center; gap: 0.6rem; font-weight: 600; font-size: 1.1rem; text-decoration: none; }
+    .brand svg { height: 2rem; width: 2rem; }
+    nav.links { display: none; gap: 1.5rem; font-size: 0.9rem; }
+    nav.links button { color: var(--fg-muted); }
+    @media (min-width: 640px) { nav.links { display: flex; } }
+    nav.links button:hover { color: var(--fg); }
+
+    button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+    /* CTA 1: explore (pill, solid) */
+    .cta-explore {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      border-radius: 999px; padding: 0.75rem 1.5rem; font-weight: 600;
+      background: var(--accent); color: var(--accent-ink);
+      transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+    .cta-explore:hover { background: var(--accent-strong); transform: translateY(-1px); }
+    .cta-explore:active { transform: scale(0.98); }
+
+    /* CTA 2: continue (outline, fill sweep) */
+    .cta-continue {
+      position: relative; display: inline-flex; align-items: center; gap: 0.6rem;
+      overflow: hidden; border-radius: 0.5rem; border: 1.5px solid var(--accent);
+      padding: 0.7rem 1.4rem; font-weight: 600; color: var(--accent-strong); isolation: isolate;
+    }
+    .cta-continue::before {
+      content: ""; position: absolute; inset: 0; background: var(--accent);
+      transform: translateX(-100%); transition: transform 0.25s ease; z-index: -1;
+    }
+    .cta-continue:hover::before, .cta-continue:focus-visible::before { transform: translateX(0); }
+    .cta-continue:hover, .cta-continue:focus-visible { color: var(--accent-ink); }
+    .cta-continue .arrow { transition: transform 0.2s ease; }
+    .cta-continue:hover .arrow { transform: translateX(3px); }
+    .cta-continue:active { transform: scale(0.98); }
+
+    /* CTA 3: reserve (full width bar, shine sweep) */
+    .cta-reserve {
+      position: relative; display: flex; width: 100%; align-items: center; justify-content: center;
+      overflow: hidden; border-radius: 0.75rem; padding: 0.9rem 1.5rem; font-weight: 600;
+      background: var(--accent-strong); color: var(--accent-ink);
+      background-image: linear-gradient(115deg, transparent 0%, transparent 40%, rgba(255,255,255,0.35) 50%, transparent 60%, transparent 100%);
+      background-size: 250% 100%; background-position: 100% 0;
+      transition: background-position 0.5s ease, transform 0.15s ease;
+    }
+    .cta-reserve:hover, .cta-reserve:focus-visible { background-position: 0 0; }
+    .cta-reserve:active { transform: scale(0.99); }
+    .cta-reserve:disabled { opacity: 0.6; cursor: default; }
+
+    .card { border-radius: 1.25rem; border: 1px solid var(--border); background: var(--bg-raised); }
+
+    .hero { display: grid; gap: 2.5rem; align-items: center; padding-block: 4rem 5rem; }
+    @media (min-width: 1024px) { .hero { grid-template-columns: 1fr 1fr; gap: 4rem; } }
+    .hero h1 { font-size: 2.5rem; line-height: 1; }
+    @media (min-width: 640px) { .hero h1 { font-size: 3.75rem; } }
+    .hero p.sub { margin-top: 1.25rem; max-width: 46ch; font-size: 1rem; }
+    @media (min-width: 640px) { .hero p.sub { font-size: 1.125rem; } }
+    .hero-mark-wrap { display: flex; justify-content: center; }
+    @media (min-width: 1024px) { .hero-mark-wrap { justify-content: flex-end; } }
+    .hero-mark { height: 12rem; width: 12rem; animation: float 6s ease-in-out infinite; }
+    @media (min-width: 640px) { .hero-mark { height: 16rem; width: 16rem; } }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(-2deg); }
+      50% { transform: translateY(-10px) rotate(2deg); }
+    }
+
+    section { padding-block: 4rem; }
+    @media (min-width: 640px) { section { padding-block: 5rem; } }
+    section h2 { font-size: 1.875rem; }
+    @media (min-width: 640px) { section h2 { font-size: 2.25rem; } }
+
+    .service-grid { margin-top: 2rem; display: grid; gap: 1rem; }
+    @media (min-width: 640px) { .service-grid { grid-template-columns: 1fr 1fr; } }
+    .service-card { padding: 1.25rem; }
+    .service-head { display: flex; align-items: center; gap: 0.6rem; }
+    .dot { height: 0.65rem; width: 0.65rem; border-radius: 999px; display: inline-block; }
+    .service-head h3 { font-size: 1.125rem; font-weight: 600; }
+    .duration-grid { margin-top: 1rem; display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.4rem; }
+    .pill {
+      border-radius: 0.6rem; border: 1px solid var(--border-strong); background: var(--bg-sunken);
+      color: var(--fg); padding: 0.5rem 0.2rem; text-align: center;
+      transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.1s ease;
+    }
+    .pill:hover { border-color: var(--accent); }
+    .pill:active { transform: scale(0.97); }
+    .pill[data-selected="true"] { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+    .pill .months { display: block; font-size: 0.65rem; color: var(--fg-faint); }
+    .pill[data-selected="true"] .months { color: inherit; }
+    .pill .price { display: block; font-size: 0.8rem; font-weight: 600; }
+
+    .quote-row { margin-top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 0.5rem; border-radius: 0.6rem;
+      border: 1px dashed var(--border-strong); color: var(--fg-muted); padding: 0.4rem 0.75rem; font-size: 0.875rem;
+      transition: border-color 0.15s ease, color 0.15s ease;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--fg); }
+    .chip[data-selected="true"] { border-style: solid; border-color: var(--accent); color: var(--fg); }
+
+    .recap {
+      margin-top: 2rem; padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem;
+    }
+    @media (min-width: 640px) { .recap { flex-direction: row; align-items: center; justify-content: space-between; } }
+    .recap .pick-label { font-size: 0.9rem; }
+    .recap .pick-value { font-size: 1.125rem; font-weight: 600; margin-top: 0.15rem; }
+
+    .steps { margin-top: 2rem; display: grid; gap: 1.5rem; }
+    @media (min-width: 640px) { .steps { grid-template-columns: repeat(3, 1fr); } }
+    .steps .n { font-size: 1.5rem; font-weight: 600; color: var(--accent); }
+    .steps h3 { margin-top: 0.5rem; font-size: 1.125rem; font-weight: 600; }
+    .steps p { margin-top: 0.4rem; }
+
+    .faq-list { margin-top: 2rem; }
+    .faq-item { padding-block: 1rem; border-top: 1px solid var(--border); }
+    .faq-item:first-child { border-top: none; }
+    .faq-item summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 1rem; font-weight: 500; }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item .plus { color: var(--accent); transition: transform 0.2s ease; flex-shrink: 0; }
+    .faq-item[open] .plus { transform: rotate(45deg); }
+    .faq-item p { margin-top: 0.75rem; max-width: 65ch; }
+
+    form.contact { margin-top: 1.5rem; padding: 1.5rem; }
+    form.contact h3 { font-size: 1.125rem; font-weight: 600; }
+    form.contact > p.hint { margin-top: 0.25rem; font-size: 0.9rem; }
+    fieldset.method { margin-top: 1.25rem; display: flex; gap: 0.5rem; border: none; padding: 0; }
+    fieldset.method legend { margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500; }
+    .method-btn { padding: 0.5rem 1rem; text-transform: capitalize; }
+    .field { margin-top: 1rem; }
+    .field label { display: block; margin-bottom: 0.4rem; font-size: 0.9rem; font-weight: 500; }
+    .input {
+      width: 100%; border-radius: 0.6rem; border: 1px solid var(--border-strong);
+      background: var(--bg-sunken); color: var(--fg); padding: 0.7rem 0.85rem; font: inherit;
+    }
+    .input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    textarea.input { resize: none; }
+    .field .error { margin-top: 0.4rem; font-size: 0.875rem; color: var(--error); }
+    .submit-row { margin-top: 1.25rem; }
+    .confirm p.label { font-size: 0.9rem; font-weight: 600; color: var(--success); }
+    .confirm h3 { margin-top: 0.25rem; font-size: 1.25rem; font-weight: 600; }
+    .confirm p.body { margin-top: 0.5rem; }
+
+    footer.site { border-top: 1px solid var(--border); }
+    .footer-row {
+      padding-block: 2.5rem; display: flex; flex-direction: column; gap: 1rem; font-size: 0.9rem;
+    }
+    @media (min-width: 640px) { .footer-row { flex-direction: row; align-items: center; justify-content: space-between; } }
+    .footer-brand { display: flex; align-items: center; gap: 0.5rem; color: var(--fg-muted); }
+    .footer-brand svg { height: 1.25rem; width: 1.25rem; }
+    .footer-row .disclaimer { max-width: 55ch; color: var(--fg-faint); }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="container header-row">
+      <a href="#top" class="brand">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="42" r="26" stroke="#e3a84b" stroke-width="6" fill="none"/>
+          <g transform="translate(40,58) rotate(-18) scale(0.85)">
+            <circle cx="0" cy="0" r="9" fill="#e3a84b"/><circle cx="0" cy="0" r="3.4" fill="#241b2f"/>
+            <rect x="-2.4" y="8" width="4.8" height="24" rx="1.4" fill="#e3a84b"/>
+            <rect x="2.4" y="26" width="6" height="3.6" rx="0.8" fill="#e3a84b"/>
+            <rect x="2.4" y="32" width="4.4" height="3.6" rx="0.8" fill="#e3a84b"/>
+          </g>
+          <g transform="translate(62,62) rotate(10) scale(1.05)">
+            <circle cx="0" cy="0" r="9" fill="#f0bd6b"/><circle cx="0" cy="0" r="3.4" fill="#241b2f"/>
+            <rect x="-2.4" y="8" width="4.8" height="30" rx="1.4" fill="#f0bd6b"/>
+            <rect x="2.4" y="30" width="7" height="4" rx="0.8" fill="#f0bd6b"/>
+            <rect x="2.4" y="37" width="5" height="4" rx="0.8" fill="#f0bd6b"/>
+          </g>
+          <g transform="translate(80,54) rotate(28) scale(0.72)">
+            <circle cx="0" cy="0" r="9" fill="#e3a84b"/><circle cx="0" cy="0" r="3.4" fill="#241b2f"/>
+            <rect x="-2.4" y="8" width="4.8" height="20" rx="1.4" fill="#e3a84b"/>
+            <rect x="2.4" y="22" width="5.5" height="3.4" rx="0.8" fill="#e3a84b"/>
+          </g>
+        </svg>
+        Keyring
+      </a>
+      <nav class="links">
+        <button data-scroll="plans">Plans</button>
+        <button data-scroll="how-it-works">How it works</button>
+        <button data-scroll="faq">FAQ</button>
+      </nav>
+      <button class="cta-explore" data-scroll="plans" style="font-size: 0.9rem;">See the plans</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="top" class="container hero">
+      <div>
+        <h1>One ring. Every account you pay for.</h1>
+        <p class="sub muted">Spotify, Netflix, Disney+, and more, sold as shared seats at a
+          fraction of retail. Pick a plan and we'll set you up by hand.</p>
+        <div style="margin-top: 1.75rem;">
+          <button class="cta-explore" data-scroll="plans">See the plans <span aria-hidden="true">&rarr;</span></button>
+        </div>
+      </div>
+      <div class="hero-mark-wrap">
+        <svg class="hero-mark" viewBox="0 0 120 120" aria-label="Keyring">
+          <circle cx="60" cy="42" r="26" stroke="#e3a84b" stroke-width="6" fill="none"/>
+          <g transform="translate(40,58) rotate(-18) scale(0.85)">
+            <circle cx="0" cy="0" r="9" fill="#e3a84b"/><circle cx="0" cy="0" r="3.4" fill="#241b2f"/>
+            <rect x="-2.4" y="8" width="4.8" height="24" rx="1.4" fill="#e3a84b"/>
+            <rect x="2.4" y="26" width="6" height="3.6" rx="0.8" fill="#e3a84b"/>
+            <rect x="2.4" y="32" width="4.4" height="3.6" rx="0.8" fill="#e3a84b"/>
+          </g>
+          <g transform="translate(62,62) rotate(10) scale(1.05)">
+            <circle cx="0" cy="0" r="9" fill="#f0bd6b"/><circle cx="0" cy="0" r="3.4" fill="#241b2f"/>
+            <rect x="-2.4" y="8" width="4.8" height="30" rx="1.4" fill="#f0bd6b"/>
+            <rect x="2.4" y="30" width="7" height="4" rx="0.8" fill="#f0bd6b"/>
+            <rect x="2.4" y="37" width="5" height="4" rx="0.8" fill="#f0bd6b"/>
+          </g>
+          <g transform="translate(80,54) rotate(28) scale(0.72)">
+            <circle cx="0" cy="0" r="9" fill="#e3a84b"/><circle cx="0" cy="0" r="3.4" fill="#241b2f"/>
+            <rect x="-2.4" y="8" width="4.8" height="20" rx="1.4" fill="#e3a84b"/>
+            <rect x="2.4" y="22" width="5.5" height="3.4" rx="0.8" fill="#e3a84b"/>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <section id="plans" class="container">
+      <h2>Pick a plan</h2>
+      <p class="muted" style="margin-top: 0.5rem; max-width: 60ch;">Every price below is per seat, billed once for the term you choose.</p>
+      <div id="service-grid" class="service-grid"></div>
+
+      <div style="margin-top: 2rem;">
+        <p class="muted" style="font-size: 0.9rem; font-weight: 500;">We also carry, priced per request:</p>
+        <div id="quote-row" class="quote-row"></div>
+      </div>
+
+      <div id="recap" class="card recap" hidden>
+        <div>
+          <p class="pick-label muted">Your pick</p>
+          <p id="recap-text" class="pick-value"></p>
+        </div>
+        <button id="continue-btn" class="cta-continue">Continue <span class="arrow" aria-hidden="true">&rarr;</span></button>
+      </div>
+
+      <form id="contact-form" class="card contact" hidden>
+        <h3 id="contact-title"></h3>
+        <p class="hint muted">Leave an email or phone number and we'll message you to confirm and get you set up.</p>
+
+        <fieldset class="method">
+          <legend>Reach me by</legend>
+          <button type="button" class="pill method-btn" data-method="email" data-selected="true">Email</button>
+          <button type="button" class="pill method-btn" data-method="phone">Phone</button>
+        </fieldset>
+
+        <div class="field">
+          <label id="contact-label" for="contact-value">Email address</label>
+          <input id="contact-value" name="contact_value" class="input" type="email" required placeholder="you@example.com" />
+          <p id="contact-error" class="error" hidden></p>
+        </div>
+
+        <div class="field">
+          <label for="contact-note">Anything we should know? (optional)</label>
+          <textarea id="contact-note" name="note" class="input" rows="2"></textarea>
+        </div>
+
+        <input type="hidden" name="service_name" id="field-service-name" />
+        <input type="hidden" name="duration_label" id="field-duration-label" />
+        <input type="hidden" name="price" id="field-price" />
+        <input type="hidden" name="subject" value="New Keyring plan request" />
+        <input type="hidden" name="from_name" value="Keyring site" />
+        <input type="checkbox" name="botcheck" style="display: none" tabindex="-1" autocomplete="off" />
+
+        <div class="submit-row">
+          <button type="submit" id="submit-btn" class="cta-reserve">Reserve this plan</button>
+        </div>
+      </form>
+
+      <div id="confirm" class="card confirm" style="padding: 1.5rem; margin-top: 1.5rem;" hidden>
+        <p class="label">Request received</p>
+        <h3 id="confirm-title"></h3>
+        <p class="body muted">We'll message you shortly to confirm and get you set up.</p>
+      </div>
+    </section>
+
+    <section id="how-it-works" class="container">
+      <h2>How it works</h2>
+      <div class="steps">
+        <div>
+          <p class="n mono">01</p>
+          <h3>Pick a plan</h3>
+          <p class="muted">Choose a service and a term. The price you see is the price you pay, nothing added later.</p>
+        </div>
+        <div>
+          <p class="n mono">02</p>
+          <h3>Leave your contact</h3>
+          <p class="muted">An email or phone number is all we need. No account, no card details, not yet.</p>
+        </div>
+        <div>
+          <p class="n mono">03</p>
+          <h3>We set up your seat</h3>
+          <p class="muted">We message you directly to confirm payment and hand over access, usually within a day.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="container">
+      <h2>Questions, answered</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>Is this run by Spotify, Netflix, or the other services listed?<span class="plus" aria-hidden="true">+</span></summary>
+          <p class="muted">No. Keyring is an independent reseller of shared plan seats. We aren't affiliated with, endorsed by, or operated by any of the services on this page.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How fast do I get access?<span class="plus" aria-hidden="true">+</span></summary>
+          <p class="muted">We reach out personally after you submit a request, usually within a day, to confirm details and hand over your seat.</p>
+        </details>
+        <details class="faq-item">
+          <summary>What if my seat stops working?<span class="plus" aria-hidden="true">+</span></summary>
+          <p class="muted">We replace any seat that stops working during its paid term, at no extra cost to you.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How do I pay?<span class="plus" aria-hidden="true">+</span></summary>
+          <p class="muted">Payment details are sent when we message you to confirm your order. Nothing is charged automatically.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Does it renew automatically?<span class="plus" aria-hidden="true">+</span></summary>
+          <p class="muted">No. Plans are paid once for the term you pick. Nothing renews unless you come back and choose a new term.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site">
+    <div class="container footer-row">
+      <div class="footer-brand">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="42" r="26" stroke="#e3a84b" stroke-width="6" fill="none"/>
+          <g transform="translate(40,58) rotate(-18) scale(0.85)">
+            <circle cx="0" cy="0" r="9" fill="#e3a84b"/><circle cx="0" cy="0" r="3.4" fill="#241b2f"/>
+            <rect x="-2.4" y="8" width="4.8" height="24" rx="1.4" fill="#e3a84b"/>
+          </g>
+        </svg>
+        <span>Keyring</span>
+      </div>
+      <p class="disclaimer">Independent reseller of shared subscription seats. Not affiliated with, endorsed by, or
+        operated by Spotify, Netflix, YouTube, Max, Disney, DAZN, CapCut, or any other brand named on this page.</p>
+    </div>
+  </footer>
+
+  <script>
+    // ---- Replace this with the key from web3forms.com (free, no signup beyond an email) ----
+    var WEB3FORMS_ACCESS_KEY = "4d13b6ec-07e6-4f62-afd7-bedc999e0a72";
+
+    var DURATIONS = [
+      { id: "m1", label: "1 month", months: 1 },
+      { id: "m3", label: "3 months", months: 3 },
+      { id: "m6", label: "6 months", months: 6 },
+      { id: "m12", label: "12 months", months: 12 },
+      { id: "m24", label: "24 months", months: 24 },
+    ];
+
+    var PRICED_SERVICES = [
+      { id: "spotify", name: "Spotify", tint: "#3FA66A", prices: { m1: 5.70, m3: 12.50, m6: 16.50, m12: 22.50, m24: 37.00 } },
+      { id: "netflix", name: "Netflix", tint: "#C5414B", prices: { m1: 5.50, m3: 15.00, m6: 22.00, m12: 35.00, m24: 60.00 } },
+      { id: "youtube", name: "YouTube Premium", tint: "#D6554A", prices: { m1: 6.80, m3: 13.90, m6: 19.99, m12: 29.50, m24: 50.60 } },
+      { id: "max", name: "Max", tint: "#6E6ACB", prices: { m1: 5.99, m3: 14.99, m6: 23.99, m12: 35.99, m24: 68.99 } },
+      { id: "disney", name: "Disney+", tint: "#3E7FD1", prices: { m1: 5.30, m3: 12.99, m6: 21.99, m12: 31.99, m24: 57.99 } },
+      { id: "dazn", name: "DAZN", tint: "#E3A84B", prices: { m1: 10.99, m3: 29.50, m6: 49.50, m12: 85.50, m24: 139.99 } },
+      { id: "capcut", name: "CapCut Pro", tint: "#3FB9B2", prices: { m1: 5.60, m3: 14.50, m6: 21.80, m12: 32.50, m24: 35.99 } },
+    ];
+
+    var QUOTE_SERVICES = [
+      { id: "xbox", name: "Xbox Game Pass", tint: "#4C9A4C" },
+      { id: "hulu", name: "Hulu", tint: "#3FB97A" },
+      { id: "chatgpt", name: "ChatGPT Plus", tint: "#6E8FD1" },
+      { id: "adobe", name: "Adobe Creative Cloud", tint: "#D1443F" },
+      { id: "iptv", name: "IPTV", tint: "#C77AC9" },
+      { id: "prime", name: "Amazon Prime", tint: "#3EA7D1" },
+    ];
+
+    function formatPrice(n) { return "$" + n.toFixed(2); }
+
+    var selection = null; // { kind: 'priced', serviceId, durationId } | { kind: 'quote', serviceId }
+
+    var serviceGrid = document.getElementById("service-grid");
+    var quoteRow = document.getElementById("quote-row");
+    var recap = document.getElementById("recap");
+    var recapText = document.getElementById("recap-text");
+    var continueBtn = document.getElementById("continue-btn");
+    var form = document.getElementById("contact-form");
+    var confirmBox = document.getElementById("confirm");
+
+    PRICED_SERVICES.forEach(function (service) {
+      var card = document.createElement("div");
+      card.className = "card service-card";
+
+      var head = document.createElement("div");
+      head.className = "service-head";
+      var dot = document.createElement("span");
+      dot.className = "dot";
+      dot.style.background = service.tint;
+      dot.setAttribute("aria-hidden", "true");
+      var h3 = document.createElement("h3");
+      h3.textContent = service.name;
+      head.appendChild(dot);
+      head.appendChild(h3);
+      card.appendChild(head);
+
+      var grid = document.createElement("div");
+      grid.className = "duration-grid";
+      DURATIONS.forEach(function (d) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "pill";
+        btn.dataset.service = service.id;
+        btn.dataset.duration = d.id;
+        btn.innerHTML = '<span class="months">' + d.months + "mo</span>" +
+          '<span class="price mono">' + formatPrice(service.prices[d.id]) + "</span>";
+        btn.addEventListener("click", function () {
+          selection = { kind: "priced", serviceId: service.id, durationId: d.id };
+          render();
+        });
+        grid.appendChild(btn);
+      });
+      card.appendChild(grid);
+      serviceGrid.appendChild(card);
+    });
+
+    QUOTE_SERVICES.forEach(function (service) {
+      var chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.dataset.service = service.id;
+      chip.innerHTML = '<span class="dot" style="height:0.4rem;width:0.4rem;background:' + service.tint + '" aria-hidden="true"></span>' + service.name;
+      chip.addEventListener("click", function () {
+        selection = { kind: "quote", serviceId: service.id };
+        render();
+      });
+      quoteRow.appendChild(chip);
+    });
+
+    function findPriced(id) { return PRICED_SERVICES.filter(function (s) { return s.id === id; })[0]; }
+    function findQuote(id) { return QUOTE_SERVICES.filter(function (s) { return s.id === id; })[0]; }
+    function findDuration(id) { return DURATIONS.filter(function (d) { return d.id === id; })[0]; }
+
+    function render() {
+      document.querySelectorAll(".pill[data-service]").forEach(function (btn) {
+        var selected = selection && selection.kind === "priced" &&
+          btn.dataset.service === selection.serviceId && btn.dataset.duration === selection.durationId;
+        btn.dataset.selected = selected ? "true" : "false";
+      });
+      document.querySelectorAll(".chip[data-service]").forEach(function (btn) {
+        var selected = selection && selection.kind === "quote" && btn.dataset.service === selection.serviceId;
+        btn.dataset.selected = selected ? "true" : "false";
+      });
+
+      form.hidden = true;
+      confirmBox.hidden = true;
+
+      if (!selection) {
+        recap.hidden = true;
+        return;
+      }
+
+      recap.hidden = false;
+      var name, durationLabel, price;
+      if (selection.kind === "priced") {
+        var svc = findPriced(selection.serviceId);
+        var dur = findDuration(selection.durationId);
+        name = svc.name;
+        durationLabel = dur.label;
+        price = svc.prices[selection.durationId];
+        recapText.innerHTML = name + " &middot; " + durationLabel +
+          ' <span class="mono" style="color:var(--accent-strong)">' + formatPrice(price) + "</span>";
+      } else {
+        var q = findQuote(selection.serviceId);
+        name = q.name;
+        durationLabel = null;
+        price = null;
+        recapText.textContent = name + " · custom quote";
+      }
+
+      document.getElementById("field-service-name").value = name;
+      document.getElementById("field-duration-label").value = durationLabel || "custom quote";
+      document.getElementById("field-price").value = price !== null ? formatPrice(price) : "quote on request";
+      document.getElementById("contact-title").textContent = "Reserve " + name + (durationLabel ? " · " + durationLabel : "") +
+        (price !== null ? " · " + formatPrice(price) : "");
+    }
+
+    continueBtn.addEventListener("click", function () {
+      form.hidden = false;
+      form.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+
+    var method = "email";
+    document.querySelectorAll(".method-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        method = btn.dataset.method;
+        document.querySelectorAll(".method-btn").forEach(function (b) { b.dataset.selected = (b === btn) ? "true" : "false"; });
+        var input = document.getElementById("contact-value");
+        var label = document.getElementById("contact-label");
+        if (method === "email") {
+          input.type = "email";
+          input.placeholder = "you@example.com";
+          label.textContent = "Email address";
+        } else {
+          input.type = "tel";
+          input.placeholder = "+1 555 123 4567";
+          label.textContent = "Phone number";
+        }
+      });
+    });
+
+    function isPlausibleEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+    function isPlausiblePhone(v) { var d = v.replace(/[^0-9]/g, ""); return d.length >= 7 && d.length <= 15; }
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      var input = document.getElementById("contact-value");
+      var errorEl = document.getElementById("contact-error");
+      var value = input.value.trim();
+      var valid = method === "email" ? isPlausibleEmail(value) : isPlausiblePhone(value);
+      if (!valid) {
+        errorEl.hidden = false;
+        errorEl.textContent = method === "email"
+          ? "That doesn't look like a valid email. Double-check it and try again."
+          : "That doesn't look like a valid phone number. Double-check it and try again.";
+        return;
+      }
+      errorEl.hidden = true;
+
+      var submitBtn = document.getElementById("submit-btn");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Sending…";
+
+      var payload = {
+        access_key: WEB3FORMS_ACCESS_KEY,
+        subject: "New Keyring plan request",
+        from_name: "Keyring site",
+        service_name: document.getElementById("field-service-name").value,
+        duration_label: document.getElementById("field-duration-label").value,
+        price: document.getElementById("field-price").value,
+        contact_method: method,
+        contact_value: value,
+        note: document.getElementById("contact-note").value,
+      };
+
+      fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data.success) {
+            form.hidden = true;
+            confirmBox.hidden = false;
+            document.getElementById("confirm-title").textContent =
+              "We'll reach out to set up " + payload.service_name;
+          } else {
+            errorEl.hidden = false;
+            errorEl.textContent = "Something went wrong sending this. Try again shortly.";
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Reserve this plan";
+          }
+        })
+        .catch(function () {
+          errorEl.hidden = false;
+          errorEl.textContent = "Something went wrong sending this. Check your connection and try again.";
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Reserve this plan";
+        });
+    });
+
+    document.querySelectorAll("[data-scroll]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var el = document.getElementById(btn.dataset.scroll);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  </script>
+</body>
+</html>
